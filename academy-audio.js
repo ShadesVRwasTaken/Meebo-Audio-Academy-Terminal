@@ -1,4 +1,4 @@
-// Meebo Audio Academy - Part 2: Local AI Processing Engine (Proxy Fixed)
+// Meebo Audio Academy - Part 2: Local AI Processing Engine (WASM Caching Fixed)
 const micBtn = document.getElementById('mic-btn');
 const mediaUpload = document.getElementById('media-upload');
 const dropZone = document.getElementById('drop-zone');
@@ -8,8 +8,9 @@ let transcriberPipeline = null;
 
 // Initialize the local Whisper AI model background engine
 async function initLocalModel() {
+    // Wait for the HTML Head dynamic scripts to bind to global memory variables
     if (!window.HuggingFacePipeline || !window.HuggingFaceEnv) {
-        statusBox.innerText = "⏳ Synchronizing local machine learning layers...";
+        statusBox.innerText = "⏳ Connecting to local machine learning modules...";
         setTimeout(initLocalModel, 200);
         return;
     }
@@ -17,27 +18,28 @@ async function initLocalModel() {
     statusBox.innerText = "🤖 Launching Local Whisper AI... (Downloading ~30MB engine weights on first startup)";
     
     try {
+        // Enforce online hub queries to allow public deployment fetching
         window.HuggingFaceEnv.allowLocalModels = false;
         
-        // Force pipeline execution inline to eliminate the Codespace worker lockout
+        // 🔧 FIXED REPOSITORY MAPPING: Uses the native v3 onnx-community architecture distribution
         transcriberPipeline = await window.HuggingFacePipeline(
             'automatic-speech-recognition', 
-            'Xenova/whisper-tiny.en',
+            'onnx-community/whisper-tiny.en', 
             { 
-                proxy: false, // <-- CRITICAL CODESPACE FIXED NODE: Stops endless stalling loop
+                proxy: false, // Forces pipeline execution inline on the tab thread, destroying the loading stall
                 device: 'wasm' 
             }
         );
         
         statusBox.innerText = "🏁 Local AI Engine ready! Drop an audio/video file or speak into the microphone node.";
     } catch (err) {
-        statusBox.innerText = `🚨 Model deployment block: ${err.message}\nTry disabling privacy extensions on this tab, then refresh!`;
+        statusBox.innerText = `🚨 Model deployment block: ${err.message}\nCheck your internet context connectivity, then refresh!`;
         console.error("AI Loading Error: ", err);
     }
 }
 initLocalModel();
 
-// Setup Chromebook Native Speech Recognition for microphone button loops (Free/Native)
+// Setup Chromebook Native Speech Recognition for live microphone node loops (Free/Native)
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let liveRecognition = null;
 
@@ -75,7 +77,7 @@ function learnFromSentence(text) {
         }
     });
 
-    saveActiveBrain(); 
+    saveActiveBrain(); // Global function from academy-core.js
     if (explorerWrapper.style.display === "block") renderBrainExplorer();
 }
 
@@ -106,7 +108,7 @@ if (liveRecognition) {
     liveRecognition.onend = () => { micBtn.classList.remove('listening'); };
 }
 
-// --- DRAG & DROP INGESTION PROCESSING ---
+// --- DRAG & DROP MEDIA WAVE INGESTION ---
 dropZone.addEventListener('click', () => mediaUpload.click());
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = "rgba(14, 189, 132, 0.2)"; });
 dropZone.addEventListener('dragleave', () => { dropZone.style.background = "rgba(14, 189, 132, 0.05)"; });
