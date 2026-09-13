@@ -1,4 +1,4 @@
-// Meebo Audio Academy - Part 2: Local AI Processing Engine (Single Thread Fix)
+// Meebo Audio Academy - Part 2: Local AI Processing Engine (Xenova v2 Fallback Core)
 const micBtn = document.getElementById('mic-btn');
 const mediaUpload = document.getElementById('media-upload');
 const dropZone = document.getElementById('drop-zone');
@@ -8,25 +8,21 @@ let transcriberPipeline = null;
 
 // Initialize the local Whisper AI model background engine
 async function initLocalModel() {
-    if (!window.HuggingFacePipeline || !window.HuggingFaceEnv) {
+    if (!window.XenovaPipeline || !window.XenovaEnv) {
         statusBox.innerText = "⏳ Connecting to local machine learning modules...";
-        setTimeout(initLocalModel, 250);
+        setTimeout(initLocalModel, 200);
         return;
     }
     
     statusBox.innerText = "🤖 Launching Local Whisper AI... (Downloading ~30MB engine weights on first startup)";
     
     try {
-        window.HuggingFaceEnv.allowLocalModels = false;
+        window.XenovaEnv.allowLocalModels = false;
         
-        // Generate pipeline context safely inline 
-        transcriberPipeline = await window.HuggingFacePipeline(
+        // Spin up the stable v2 Whisper tiny model parameters natively
+        transcriberPipeline = await window.XenovaPipeline(
             'automatic-speech-recognition', 
-            'onnx-community/whisper-tiny.en', 
-            { 
-                proxy: false,
-                device: 'wasm' 
-            }
+            'Xenova/whisper-tiny.en'
         );
         
         statusBox.innerText = "🏁 Local AI Engine ready! Drop an audio/video file or speak into the microphone node.";

@@ -80,18 +80,15 @@
         .brain-node.expanded > .brain-values { display: block; }
     </style>
     
-    <!-- Unified Script Module Core Loader -->
+    <!-- References the stable, highly compatible v2 Xenova distribution node layer -->
     <script type="module">
         import { pipeline, env } from 'https://jsdelivr.net';
         
-        // 🚨 THE CODESPACE & PAGES SOLUTION: 
-        // Force absolute single-threading to destroy proxy worker blocks completely.
-        env.backends.onnx.wasm.proxy = false; 
+        // Force the app context parameters to link right inline safely on ChromeOS
         env.backends.onnx.wasm.numThreads = 1;
-        env.backends.onnx.wasm.wasmPaths = 'https://unpkg.com';
         
-        window.HuggingFacePipeline = pipeline;
-        window.HuggingFaceEnv = env;
+        window.XenovaPipeline = pipeline;
+        window.XenovaEnv = env;
     </script>
 </head>
 <body>
