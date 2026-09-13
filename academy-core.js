@@ -44,7 +44,6 @@ async function loadActiveBrain() {
         currentBrainData.chaotic = parsed.chaotic || {};
         currentBrainData.grammar = parsed.grammar || {};
     } else if (activeBrainId === "default") {
-        // Core Async Fetch Pipeline targeting brain.json asset
         try {
             const response = await fetch('brain.json');
             if (response.ok) {
@@ -107,7 +106,7 @@ importTriggerBtn.addEventListener('click', () => brainUpload.click());
 brainUpload.addEventListener('change', (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    const targetFile = files[0]; // Targeted actual file object loop parameter fix
+    const targetFile = files[0];
     const reader = new FileReader();
     reader.onload = function(e) {
         try {

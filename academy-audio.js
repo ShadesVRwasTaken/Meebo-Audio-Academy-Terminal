@@ -1,4 +1,4 @@
-// Meebo Audio Academy - Part 2: Local Web-Worker AI Processing Matrix
+// Meebo Audio Academy - Part 2: Local AI Processing Engine (Proxy Fixed)
 const micBtn = document.getElementById('mic-btn');
 const mediaUpload = document.getElementById('media-upload');
 const dropZone = document.getElementById('drop-zone');
@@ -8,22 +8,36 @@ let transcriberPipeline = null;
 
 // Initialize the local Whisper AI model background engine
 async function initLocalModel() {
-    if (!window.XenovaPipeline) {
-        setTimeout(initLocalModel, 100);
+    if (!window.HuggingFacePipeline || !window.HuggingFaceEnv) {
+        statusBox.innerText = "⏳ Synchronizing local machine learning layers...";
+        setTimeout(initLocalModel, 200);
         return;
     }
-    statusBox.innerText = "🤖 Downloading Local Whisper AI model weights... (This occurs once and caches on your Chromebook)";
+    
+    statusBox.innerText = "🤖 Launching Local Whisper AI... (Downloading ~30MB engine weights on first startup)";
+    
     try {
-        // Loads OpenAI's efficient 30MB Whisper-Tiny network straight into local app data context
-        transcriberPipeline = await window.XenovaPipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
+        window.HuggingFaceEnv.allowLocalModels = false;
+        
+        // Force pipeline execution inline to eliminate the Codespace worker lockout
+        transcriberPipeline = await window.HuggingFacePipeline(
+            'automatic-speech-recognition', 
+            'Xenova/whisper-tiny.en',
+            { 
+                proxy: false, // <-- CRITICAL CODESPACE FIXED NODE: Stops endless stalling loop
+                device: 'wasm' 
+            }
+        );
+        
         statusBox.innerText = "🏁 Local AI Engine ready! Drop an audio/video file or speak into the microphone node.";
     } catch (err) {
-        statusBox.innerText = `🚨 Model deployment block: ${err.message}`;
+        statusBox.innerText = `🚨 Model deployment block: ${err.message}\nTry disabling privacy extensions on this tab, then refresh!`;
+        console.error("AI Loading Error: ", err);
     }
 }
 initLocalModel();
 
-// Setup Chromebook Native Speech Recognition for live microphone node loops (Free/Native)
+// Setup Chromebook Native Speech Recognition for microphone button loops (Free/Native)
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let liveRecognition = null;
 
@@ -92,7 +106,7 @@ if (liveRecognition) {
     liveRecognition.onend = () => { micBtn.classList.remove('listening'); };
 }
 
-// --- DRAG & DROP CODESPACE ENGINES ---
+// --- DRAG & DROP INGESTION PROCESSING ---
 dropZone.addEventListener('click', () => mediaUpload.click());
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = "rgba(14, 189, 132, 0.2)"; });
 dropZone.addEventListener('dragleave', () => { dropZone.style.background = "rgba(14, 189, 132, 0.05)"; });
@@ -118,12 +132,10 @@ async function processMediaFile(file) {
         const arrayBuffer = await file.arrayBuffer();
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         
-        // Convert multi-channel tracks down to unified mono floating arrays
         let rawData = audioBuffer.getChannelData(0);
         
         statusBox.innerText = `🔥 Local AI Model Processing File: "${file.name}"...\nThis runs silently at high speed inside your browser!`;
 
-        // Compute transcription matrix weights asynchronously
         const output = await transcriberPipeline(rawData, {
             chunk_length_s: 30,
             stride_length_s: 5

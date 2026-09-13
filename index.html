@@ -79,16 +79,19 @@
         .brain-values { display: none; color: #b5b5c8; font-size: 0.9em; margin-left: 10px; word-break: break-all; }
         .brain-node.expanded > .brain-values { display: block; }
     </style>
-    <!-- Imports HuggingFace Transformers.js engine module inside head context -->
+    <!-- Imports the official, up-to-date HuggingFace Transformers.js engine module -->
     <script type="module">
-        import { pipeline } from 'https://jsdelivr.net';
-        window.XenovaPipeline = pipeline;
+        import { pipeline, env } from 'https://jsdelivr.net';
+        // Optimize WebAssembly parameters for native Chromebook CPU/GPU frameworks
+        env.backends.onnx.wasm.numThreads = 1;
+        window.HuggingFacePipeline = pipeline;
+        window.HuggingFaceEnv = env;
     </script>
 </head>
 <body>
 
 <div class="terminal-container">
-    <h2>🧠 Meebo Cognitive Audio Academy (Local AI Engine)</h2>
+    <h2>🧠 Meebo Cognitive Audio Academy + Profile Suite</h2>
     
     <div class="control-panel">
         <select id="brain-select"></select>
@@ -109,19 +112,19 @@
     </div>
 
     <div class="drop-zone" id="drop-zone">
-        📂 Drop ANY Audio/Video file here for LOCAL silent transcription
+        📂 Drop MP3, MP4, or WAV to teach Meebo or Click to select a file
         <input type="file" id="media-upload" accept="audio/*,video/*" style="display: none;">
     </div>
 
     <h4>Ingestion Output Stream:</h4>
-    <div id="status-box">System Initialized. Preparing Local Whisper AI framework...</div>
+    <div id="status-box">System Initialized. Awaiting pipeline broadcast packet...</div>
 
     <div class="explorer-wrapper" id="explorer-wrapper" style="display: block;">
         <div id="brain-explorer-container"></div>
     </div>
 </div>
 
-<!-- Script Execution Pipeline -->
+<!-- Script Execution Sequencing -->
 <script src="academy-core.js"></script>
 <script src="academy-audio.js"></script>
 </body>
