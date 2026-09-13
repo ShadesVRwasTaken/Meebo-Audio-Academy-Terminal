@@ -1,4 +1,4 @@
-// Meebo Audio Academy - Part 2: Local AI Processing Engine (WASM Caching Fixed)
+// Meebo Audio Academy - Part 2: Local AI Processing Engine (Single Thread Fix)
 const micBtn = document.getElementById('mic-btn');
 const mediaUpload = document.getElementById('media-upload');
 const dropZone = document.getElementById('drop-zone');
@@ -8,32 +8,30 @@ let transcriberPipeline = null;
 
 // Initialize the local Whisper AI model background engine
 async function initLocalModel() {
-    // Wait for the HTML Head dynamic scripts to bind to global memory variables
     if (!window.HuggingFacePipeline || !window.HuggingFaceEnv) {
         statusBox.innerText = "⏳ Connecting to local machine learning modules...";
-        setTimeout(initLocalModel, 200);
+        setTimeout(initLocalModel, 250);
         return;
     }
     
     statusBox.innerText = "🤖 Launching Local Whisper AI... (Downloading ~30MB engine weights on first startup)";
     
     try {
-        // Enforce online hub queries to allow public deployment fetching
         window.HuggingFaceEnv.allowLocalModels = false;
         
-        // 🔧 FIXED REPOSITORY MAPPING: Uses the native v3 onnx-community architecture distribution
+        // Generate pipeline context safely inline 
         transcriberPipeline = await window.HuggingFacePipeline(
             'automatic-speech-recognition', 
             'onnx-community/whisper-tiny.en', 
             { 
-                proxy: false, // Forces pipeline execution inline on the tab thread, destroying the loading stall
+                proxy: false,
                 device: 'wasm' 
             }
         );
         
         statusBox.innerText = "🏁 Local AI Engine ready! Drop an audio/video file or speak into the microphone node.";
     } catch (err) {
-        statusBox.innerText = `🚨 Model deployment block: ${err.message}\nCheck your internet context connectivity, then refresh!`;
+        statusBox.innerText = `🚨 Model deployment block: ${err.message}\nCheck your internet connectivity context, then refresh!`;
         console.error("AI Loading Error: ", err);
     }
 }
@@ -115,13 +113,14 @@ dropZone.addEventListener('dragleave', () => { dropZone.style.background = "rgba
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.style.background = "rgba(14, 189, 132, 0.05)";
-    if (e.dataTransfer.files.length > 0) processMediaFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files.length > 0) processMediaFile(e.dataTransfer.files);
 });
 mediaUpload.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) processMediaFile(e.target.files[0]);
+    if (e.target.files.length > 0) processMediaFile(e.target.files);
 });
 
-async function processMediaFile(file) {
+async function processMediaFile(files) {
+    const file = files[0];
     if (!transcriberPipeline) {
         alert("🚨 System Occupied: Local AI model is still loading components. Try again in a few seconds.");
         return;
@@ -136,7 +135,7 @@ async function processMediaFile(file) {
         
         let rawData = audioBuffer.getChannelData(0);
         
-        statusBox.innerText = `🔥 Local AI Model Processing File: "${file.name}"...\nThis runs silently at high speed inside your browser!`;
+        statusBox.innerText = `🔥 Local AI Model Processing File: "${file.name}"...\nThis runs silently inside your browser!`;
 
         const output = await transcriberPipeline(rawData, {
             chunk_length_s: 30,

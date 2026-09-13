@@ -80,14 +80,15 @@
         .brain-node.expanded > .brain-values { display: block; }
     </style>
     
-    <!-- Imports the official HuggingFace Transformers.js engine module -->
+    <!-- Unified Script Module Core Loader -->
     <script type="module">
         import { pipeline, env } from 'https://jsdelivr.net';
         
-        // 🔧 FIXED PATHWAYS: Directs WebAssembly components to a stable public mirror source.
-        // This stops the 404 infinite loading error when hosting on a public GitHub Pages site.
-        env.backends.onnx.wasm.wasmPaths = 'https://unpkg.com';
+        // 🚨 THE CODESPACE & PAGES SOLUTION: 
+        // Force absolute single-threading to destroy proxy worker blocks completely.
+        env.backends.onnx.wasm.proxy = false; 
         env.backends.onnx.wasm.numThreads = 1;
+        env.backends.onnx.wasm.wasmPaths = 'https://unpkg.com';
         
         window.HuggingFacePipeline = pipeline;
         window.HuggingFaceEnv = env;
@@ -129,7 +130,6 @@
     </div>
 </div>
 
-<!-- Script Execution Sequencing -->
 <script src="academy-core.js"></script>
 <script src="academy-audio.js"></script>
 </body>
